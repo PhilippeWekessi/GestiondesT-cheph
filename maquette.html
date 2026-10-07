@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestion des Tâches - Maquette</title>
+<style>
+  :root { --high:#E53935; --mid:#FB8C00; --low:#43A047; --primary:#3F51B5; --bg:#F4F6FB; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',Arial,sans-serif; }
+  body { background:#dfe3ee; display:flex; justify-content:center; padding:20px; }
+  .phone { width:360px; height:680px; background:var(--bg); border-radius:28px; overflow:hidden;
+           box-shadow:0 10px 30px rgba(0,0,0,.25); position:relative; }
+  .screen { display:none; height:100%; flex-direction:column; }
+  .screen.active { display:flex; }
+  header { background:var(--primary); color:#fff; padding:18px 16px; display:flex; align-items:center; gap:12px; font-size:18px; font-weight:600; }
+  header .spacer { flex:1; }
+  header button { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; }
+  .content { flex:1; overflow-y:auto; padding:14px; }
+
+  /* Tâches */
+  .task { background:#fff; border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer;
+          border-left:6px solid var(--c); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .task h3 { font-size:16px; margin-bottom:4px; }
+  .task small { color:#777; }
+  .badge { display:inline-block; color:#fff; font-size:12px; padding:2px 10px; border-radius:10px; margin-top:6px; background:var(--c); }
+  .Élevée { --c:var(--high); } .Moyenne { --c:var(--mid); } .Basse { --c:var(--low); }
+  .fab { position:absolute; right:20px; bottom:20px; width:56px; height:56px; border-radius:50%;
+         background:var(--primary); color:#fff; font-size:30px; border:none; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,.3); }
+
+  /* Formulaires */
+  label { display:block; margin:12px 0 4px; font-weight:600; font-size:14px; }
+  input, textarea, select { width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:15px; background:#fff; }
+  textarea { height:100px; resize:none; }
+  .btn { width:100%; margin-top:20px; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-size:16px; cursor:pointer; }
+  .btn.secondary { background:#fff; color:var(--primary); border:1px solid var(--primary); margin-top:10px; }
+  .btn.danger { background:var(--high); }
+  .link { display:block; text-align:center; margin-top:14px; color:var(--primary); font-size:14px; cursor:pointer; text-decoration:underline; }
+  .link.right { text-align:right; margin-top:8px; }
+  .detail-title { font-size:22px; margin-bottom:8px; }
+  .detail-text { margin:14px 0; line-height:1.5; color:#333; }
+
+  /* Champ mot de passe avec œil */
+  .pwd-wrap { position:relative; }
+  .pwd-wrap input { padding-right:44px; }
+  .eye { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none;
+         cursor:pointer; color:#777; display:flex; align-items:center; justify-content:center; padding:4px; }
+  .eye:hover { color:var(--primary); }
+  .eye svg { width:22px; height:22px; }
+
+  /* Pages d'authentification */
+  .auth { justify-content:center; }
+  .auth .content { flex:none; padding:24px; }
+  .logo { text-align:center; font-size:48px; }
+  .auth h1 { text-align:center; color:var(--primary); font-size:24px; margin:6px 0 4px; }
+  .auth p.sub { text-align:center; color:#777; font-size:14px; margin-bottom:10px; }
+  .row { display:flex; gap:10px; } .row > div { flex:1; }
+
+  /* Profil */
+  .avatar { width:110px; height:110px; border-radius:50%; background:#cfd6ee; margin:10px auto 0; display:flex;
+            align-items:center; justify-content:center; font-size:38px; overflow:hidden; border:3px solid var(--primary); }
+  .avatar img { width:100%; height:100%; object-fit:cover; }
+  .photo-actions { display:flex; gap:10px; margin-top:12px; }
+  .photo-actions .btn { margin-top:0; font-size:14px; padding:10px; }
+  .mini-avatar { width:34px; height:34px; border-radius:50%; background:#fff; display:flex; align-items:center;
+                 justify-content:center; overflow:hidden; cursor:pointer; font-size:14px; }
+  .mini-avatar img { width:100%; height:100%; object-fit:cover; }
+  input[type=file] { display:none; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- CONNEXION -->
+  <section class="screen auth active" id="login">
+    <div class="content">
+      <div class="logo"></div>
+      <h1>Connexion</h1>
+      <p class="sub">Connectez-vous pour gérer vos tâches</p>
+      <label>Email</label><input id="loginEmail" type="email" placeholder="exemple@mail.com">
+      <label>Mot de passe</label>
+      <div class="pwd-wrap">
+        <input id="loginMdp" type="password" placeholder="••••••••">
+        <button type="button" class="eye" onclick="togglePwd(this)" aria-label="Afficher le mot de passe"></button>
+      </div>
+      <span class="link right" onclick="show('forgot')">Mot de passe oublié ?</span>
+      <button class="btn" onclick="login()">Se connecter</button>
+      <span class="link" onclick="show('register')">Pas de compte ? S'inscrire</span>
+    </div>
+  </section>
+
+  <!-- INSCRIPTION -->
+  <section class="screen" id="register">
+    <header><button onclick="show('login')">←</button> Inscription</header>
+    <div class="content">
+      <div class="row">
+        <div><label>Nom</label><input id="regNom" placeholder="Nom"></div>
+        <div><label>Prénom</label><input id="regPrenom" placeholder="Prénom"></div>
+      </div>
+      <label>Email</label><input id="regEmail" type="email" placeholder="exemple@mail.com">
+      <label>Téléphone</label><input id="regTel" type="tel" placeholder="+229 ...">
+      <label>Mot de passe</label>
+      <div class="pwd-wrap">
+        <input id="regMdp" type="password" placeholder="••••••••">
+        <button type="button" class="eye" onclick="togglePwd(this)" aria-label="Afficher le mot de passe"></button>
+      </div>
+      <label>Confirmer le mot de passe</label>
+      <div class="pwd-wrap">
+        <input id="regMdp2" type="password" placeholder="••••••••">
+        <button type="button" class="eye" onclick="togglePwd(this)" aria-label="Afficher le mot de passe"></button>
+      </div>
+      <button class="btn" onclick="register()">S'inscrire</button>
+      <span class="link" onclick="show('login')">Déjà un compte ? Se connecter</span>
+    </div>
+  </section>
+
+  <!-- MOT DE PASSE OUBLIÉ -->
+  <section class="screen" id="forgot">
+    <header><button onclick="show('login')">←</button> Mot de passe oublié</header>
+    <div class="content">
+      <div class="logo" style="margin-top:20px"></div>
+      <p class="sub" style="text-align:center;color:#777;margin-top:10px">
+        Saisissez votre email, nous vous enverrons un lien pour réinitialiser votre mot de passe.
+      </p>
+      <label>Email</label><input id="forgotEmail" type="email" placeholder="exemple@mail.com">
+      <button class="btn" onclick="sendReset()">Envoyer le lien</button>
+      <span class="link" onclick="show('login')">Retour à la connexion</span>
+    </div>
+  </section>
+
+  <!-- LISTE DES TÂCHES -->
+  <section class="screen" id="list">
+    <header>
+      Mes tâches <span class="spacer"></span>
+      <div class="mini-avatar" id="miniAvatar" onclick="openProfile()"></div>
+      <button title="Déconnexion" onclick="logout()">⎋</button>
+    </header>
+    <div class="content" id="taskList"></div>
+    <button class="fab" onclick="openAdd()">+</button>
+  </section>
+
+  <!-- DÉTAILS -->
+  <section class="screen" id="detail">
+    <header><button onclick="show('list')">←</button> Détails de la tâche</header>
+    <div class="content" id="detailContent"></div>
+  </section>
+
+  <!-- AJOUT / MODIFICATION -->
+  <section class="screen" id="add">
+    <header><button onclick="show('list')">←</button> <span id="formTitle">Nouvelle tâche</span></header>
+    <div class="content">
+      <label>Titre</label><input id="titre" placeholder="Ex : Réviser Flutter">
+      <label>Contenu</label><textarea id="contenu" placeholder="Description de la tâche"></textarea>
+      <label>Date et heure</label><input id="date" type="datetime-local">
+      <label>Priorité</label>
+      <select id="priorite"><option>Élevée</option><option>Moyenne</option><option>Basse</option></select>
+      <button class="btn" onclick="saveTask()">Enregistrer</button>
+    </div>
+  </section>
+
+  <!-- PROFIL -->
+  <section class="screen" id="profile">
+    <header><button onclick="show('list')">←</button> Mon profil</header>
+    <div class="content">
+      <div class="avatar" id="bigAvatar"></div>
+      <div class="photo-actions">
+        <button class="btn secondary" onclick="document.getElementById('fileGallery').click()">Importer</button>
+        <button class="btn secondary" onclick="document.getElementById('fileCamera').click()">Prendre une photo</button>
+      </div>
+      <input type="file" id="fileGallery" accept="image/*" onchange="setPhoto(event)">
+      <input type="file" id="fileCamera" accept="image/*" capture="user" onchange="setPhoto(event)">
+
+      <div class="row">
+        <div><label>Nom</label><input id="pNom"></div>
+        <div><label>Prénom</label><input id="pPrenom"></div>
+      </div>
+      <label>Email</label><input id="pEmail" type="email">
+      <label>Téléphone</label><input id="pTel" type="tel">
+      <label>Nouveau mot de passe</label>
+      <div class="pwd-wrap">
+        <input id="pMdp" type="password" placeholder="Laisser vide pour ne pas changer">
+        <button type="button" class="eye" onclick="togglePwd(this)" aria-label="Afficher le mot de passe"></button>
+      </div>
+      <button class="btn" onclick="saveProfile()">Enregistrer les modifications</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const tasks = [
+    {titre:"Rendre le projet Flutter", contenu:"Finaliser le Livrable 1 et l'envoyer au formateur.", date:"2026-10-10T18:00", priorite:"Élevée"},
+    {titre:"Faire les courses", contenu:"Acheter fruits et légumes au marché.", date:"2026-10-07T09:30", priorite:"Moyenne"},
+    {titre:"Lire un article", contenu:"Article sur la navigation dans Flutter.", date:"2026-10-12T20:00", priorite:"Basse"}
+  ];
+  let user = {nom:"WEKESSI", prenom:"Philippe", email:"philippe@mail.com", tel:"+229 00000000", photo:null};
+  let editIndex = null;
+  const $ = id => document.getElementById(id);
+
+  /* Icônes œil (SVG) */
+  const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+  function togglePwd(btn) {
+    const input = btn.previousElementSibling;
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    btn.innerHTML = visible ? EYE_OFF : EYE;
+    btn.setAttribute('aria-label', visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+  }
+  function resetEyes() {
+    document.querySelectorAll('.pwd-wrap').forEach(w => {
+      w.querySelector('input').type = 'password';
+      const b = w.querySelector('.eye');
+      b.innerHTML = EYE;
+      b.setAttribute('aria-label', 'Afficher le mot de passe');
+    });
+  }
+
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+    resetEyes(); /* les mots de passe redeviennent masqués à chaque changement d'écran */
+  }
+  function fmt(d) { return new Date(d).toLocaleString('fr-FR', {dateStyle:'medium', timeStyle:'short'}); }
+
+  /* Authentification (simulée) */
+  function login() {
+    if (!$('loginEmail').value.trim() || !$('loginMdp').value) return alert('Email et mot de passe requis');
+    render(); refreshAvatar(); show('list');
+  }
+  function register() {
+    const f = ['regNom','regPrenom','regEmail','regTel','regMdp'];
+    if (f.some(id => !$(id).value.trim())) return alert('Tous les champs sont obligatoires');
+    if ($('regMdp').value !== $('regMdp2').value) return alert('Les mots de passe ne correspondent pas');
+    user = {nom:$('regNom').value, prenom:$('regPrenom').value, email:$('regEmail').value, tel:$('regTel').value, photo:null};
+    alert('Inscription réussie ! Connectez-vous.');
+    show('login');
+  }
+  function sendReset() {
+    if (!$('forgotEmail').value.trim()) return alert('Saisissez votre email');
+    alert('Un lien de réinitialisation a été envoyé à ' + $('forgotEmail').value);
+    show('login');
+  }
+  function logout() { show('login'); }
+
+  /* Tâches */
+  function render() {
+    $('taskList').innerHTML = tasks.map((t, i) => `
+      <div class="task ${t.priorite}" onclick="openDetail(${i})">
+        <h3>${t.titre}</h3>
+        <small>${fmt(t.date)}</small><br>
+        <span class="badge ${t.priorite}">${t.priorite}</span>
+      </div>`).join('');
+  }
+  function openDetail(i) {
+    const t = tasks[i];
+    $('detailContent').innerHTML = `
+      <h2 class="detail-title">${t.titre}</h2>
+      <span class="badge ${t.priorite}">${t.priorite}</span>
+      <p class="detail-text">${t.contenu}</p>
+      <small>${fmt(t.date)}</small>
+      <button class="btn" onclick="openEdit(${i})">Modifier</button>
+      <button class="btn danger" onclick="deleteTask(${i})">Supprimer</button>
+      <button class="btn secondary" onclick="show('list')">Retour à la liste</button>`;
+    show('detail');
+  }
+  function openAdd() {
+    editIndex = null; $('formTitle').textContent = 'Nouvelle tâche';
+    ['titre','contenu','date'].forEach(id => $(id).value = ''); $('priorite').value = 'Élevée';
+    show('add');
+  }
+  function openEdit(i) {
+    editIndex = i; const t = tasks[i];
+    $('formTitle').textContent = 'Modifier la tâche';
+    $('titre').value = t.titre; $('contenu').value = t.contenu; $('date').value = t.date; $('priorite').value = t.priorite;
+    show('add');
+  }
+  function saveTask() {
+    const titre = $('titre').value.trim();
+    if (!titre) return alert('Le titre est obligatoire');
+    const t = {titre, contenu:$('contenu').value, date:$('date').value || new Date().toISOString().slice(0,16), priorite:$('priorite').value};
+    if (editIndex === null) tasks.unshift(t); else tasks[editIndex] = t;
+    render(); show('list');
+  }
+  function deleteTask(i) {
+    if (confirm('Supprimer cette tâche ?')) { tasks.splice(i, 1); render(); show('list'); }
+  }
+
+  /* Profil */
+  function refreshAvatar() {
+    const initiales = ((user.prenom[0] || '') + (user.nom[0] || '')).toUpperCase();
+    const html = user.photo
+      ? `<img src="${user.photo}">`
+      : `<span style="font-weight:700;color:#3F51B5">${initiales}</span>`;
+    $('bigAvatar').innerHTML = html;
+    $('miniAvatar').innerHTML = html;
+  }
+  function openProfile() {
+    $('pNom').value = user.nom; $('pPrenom').value = user.prenom; $('pEmail').value = user.email;
+    $('pTel').value = user.tel; $('pMdp').value = '';
+    refreshAvatar(); show('profile');
+  }
+  function setPhoto(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { user.photo = ev.target.result; refreshAvatar(); };
+    reader.readAsDataURL(file);
+  }
+  function saveProfile() {
+    user.nom = $('pNom').value; user.prenom = $('pPrenom').value; user.email = $('pEmail').value; user.tel = $('pTel').value;
+    refreshAvatar();
+    alert('Profil mis à jour'); show('list');
+  }
+
+  resetEyes(); /* affiche l'icône œil dès le chargement */
+</script>
+</body>
+</html>
